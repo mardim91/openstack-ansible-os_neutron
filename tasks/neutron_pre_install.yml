@@ -79,3 +79,14 @@
     mode: "0440"
     owner: "root"
     group: "root"
+
+- name: Add ppa for the ovs-nsh packages
+  apt_repository:
+    repo: 'ppa:mardim/mardim-ppa'
+    codename: 'xenial'
+    state: present
+  when: 
+    -ovs_nsh_support
+    -ansible_distribution == 'Ubuntu'
+    -ansible_distribution_major_version == '16'
+
