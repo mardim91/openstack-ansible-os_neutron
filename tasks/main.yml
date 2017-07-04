@@ -101,5 +101,11 @@
   tags:
     - neutron-config
 
+- include: neutron_opendaylight_setup.yml
+  when:
+    - neutron_plugin_type == "ml2.opendaylight"
+  tags:
+    - neutron-config
+
 - name: Flush handlers
   meta: flush_handlers
