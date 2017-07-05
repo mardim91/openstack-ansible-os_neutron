@@ -1,5 +1,5 @@
 ---
-# Copyright 2016, Logan Vig <logan2211@gmail.com>
+# Copyright 2017, Rackspace US, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,21 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-tempest_run: yes
+- include: test-neutron-resources-upgrade.yml
 
-tempest_plugins:
-  - name: neutron
-    repo: https://git.openstack.org/openstack/neutron
-    branch: master
+- include: common/test-install-neutron.yml
 
-tempest_test_whitelist:
-  - neutron.tests.tempest.api.test_networks*
-
-tempest_private_net_provider_type: "local"
-tempest_private_net_seg_id: ''
-tempest_public_net_provider_type: "local"
-tempest_public_net_physical_type: ''
-
-neutron_plugin_type: ml2.calico
-neutron_provider_networks:
-  network_types: ''
+- include: test-neutron-resources-results.yml

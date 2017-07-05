@@ -17,27 +17,35 @@
 ### Packages
 ###
 
-neutron_packages_list: >
-  {% set packages = neutron_distro_packages -%}
+#
+# Compile a list of the distro packages to install based on
+# whether the host is in the host group and the service is
+# enabled.
+#
+neutron_package_list: |-
+  {% set packages = neutron_distro_packages %}
   {% if (neutron_services['neutron-openvswitch-agent']['group'] in group_names and neutron_services['neutron-openvswitch-agent'].service_en | bool)
       or (neutron_services['dragonflow-controller-agent']['group'] in group_names and neutron_services['dragonflow-controller-agent'].service_en | bool)
-      or (neutron_services['dragonflow-l3-agent']['group'] in group_names and neutron_services['dragonflow-l3-agent'].service_en | bool) -%}
-      {% if (ovs_nsh_support and ansible_distribution == 'Ubuntu' and ansible_distribution_major_version == '16') -%}
-            {% set _ = packages.extend(neutron_ovs_nsh_distro_packages) -%}
-      {% else -%}
-            {% set _ = packages.extend(neutron_ovs_distro_packages) -%}
-      {% endif -%}
-  {% endif -%}
-  {% if neutron_services['neutron-linuxbridge-agent']['group'] in group_names and neutron_services['neutron-linuxbridge-agent'].service_en | bool -%}
-  {% set _ = packages.extend(neutron_lxb_distro_packages) -%}
-  {% endif -%}
-  {% if neutron_services['neutron-lbaasv2-agent']['group'] in group_names and neutron_lbaasv2 | bool -%}
-  {% set _ = packages.extend(neutron_lbaas_distro_packages) -%}
-  {% endif -%}
-  {% if neutron_services['neutron-vpnaas-agent']['group'] in group_names and neutron_vpnaas | bool -%}
-  {% set _ = packages.extend(neutron_vpnaas_distro_packages) -%}
-  {% endif -%}
-  {{ packages -}}
+      or (neutron_services['dragonflow-l3-agent']['group'] in group_names and neutron_services['dragonflow-l3-agent'].service_en | bool) %}
+      {% if (ovs_nsh_support and ansible_distribution == 'Ubuntu' and ansible_distribution_major_version == '16') %}
+            {% set _ = packages.extend(neutron_ovs_nsh_distro_packages) %}
+      {% else %}
+            {% set _ = packages.extend(neutron_ovs_distro_packages) %}
+      {% endif %}
+  {% endif %}
+  {% if neutron_services['neutron-linuxbridge-agent']['group'] in group_names and neutron_services['neutron-linuxbridge-agent'].service_en | bool %}
+  {% set _ = packages.extend(neutron_lxb_distro_packages) %}
+  {% endif %}
+  {% if neutron_services['neutron-lbaasv2-agent']['group'] in group_names and neutron_lbaasv2 | bool %}
+  {% set _ = packages.extend(neutron_lbaas_distro_packages) %}
+  {% endif %}
+  {% if neutron_services['neutron-vpnaas-agent']['group'] in group_names and neutron_vpnaas | bool %}
+  {% set _ = packages.extend(neutron_vpnaas_distro_packages) %}
+  {% endif %}
+  {{ packages }}
+
+# Set the Calico Felix agent executable destination path
+calico_felix_bin: /usr/local/bin/calico-felix
 
 ###
 ### Python code details
@@ -67,7 +75,6 @@ neutron_optional_bgp_pip_packages:
   - neutron_dynamic_routing
 
 neutron_optional_calico_pip_packages:
-  - felix
   - networking-calico
   - python-etcd
 
@@ -95,7 +102,6 @@ neutron_developer_constraints:
   - "git+{{ neutron_lbaas_git_repo }}@{{ neutron_lbaas_git_install_branch }}#egg=neutron-lbaas"
   - "git+{{ neutron_vpnaas_git_repo }}@{{ neutron_vpnaas_git_install_branch }}#egg=neutron-vpnaas"
   - "git+{{ neutron_dynamic_routing_git_repo }}@{{ neutron_dynamic_routing_git_install_branch }}#egg=neutron-dynamic-routing"
-  - "git+{{ calico_git_repo }}@{{ calico_git_install_branch }}#egg=felix"
   - "git+{{ networking_calico_git_repo }}@{{ networking_calico_git_install_branch }}#egg=networking-calico"
   - "git+{{ dragonflow_git_repo }}@{{ dragonflow_git_install_branch }}#egg=dragonflow"
 
@@ -302,14 +308,22 @@ dragonflow_pub_sub_multiproc_enabled: "{{ (dragonflow_pub_sub_multiproc_driver |
 ### Services info
 ###
 
-filtered_neutron_services: >
-  {%- set services = neutron_services.copy() %}
-  {%- for key,value in neutron_services.items() %}
-  {%- if value.group not in group_names or not value.service_en %}
-  {%- set _ = services.pop(key) %}
-  {%- endif %}
-  {%- endfor %}
-  {{- services -}}
+#
+# Compile a list of the services on a host based on whether
+# the host is in the host group and the service is enabled.
+# The service list is provided in the defined start order.
+#
+filtered_neutron_services: |-
+  {% set services = [] %}
+  {% for key, value in neutron_services.items() %}
+  {%   if (value['group'] in group_names) and
+          (('service_en' not in value) or
+           ('service_en' in value and value['service_en'])) %}
+  {%     set _ = value.update({'service_key': key}) %}
+  {%     set _ = services.append(value) %}
+  {%   endif %}
+  {% endfor %}
+  {{ services | sort(attribute='start_order') }}
 
 ###
 ### Internals: neutron_services mappings
@@ -327,6 +341,7 @@ neutron_services:
    config_overrides: "{{ neutron_dhcp_agent_ini_overrides }}"
    config_type: "ini"
    init_config_overrides: "{{ neutron_dhcp_agent_init_overrides }}"
+   start_order: 3
  neutron-openvswitch-agent:
    group: neutron_openvswitch_agent
    service_name: neutron-openvswitch-agent
@@ -338,6 +353,7 @@ neutron_services:
    config_overrides: "{{ neutron_openvswitch_agent_ini_overrides }}"
    config_type: "ini"
    init_config_overrides: "{{ neutron_openvswitch_agent_init_overrides }}"
+   start_order: 2
  neutron-linuxbridge-agent:
    group: neutron_linuxbridge_agent
    service_name: neutron-linuxbridge-agent
@@ -349,6 +365,7 @@ neutron_services:
    config_overrides: "{{ neutron_linuxbridge_agent_ini_overrides }}"
    config_type: "ini"
    init_config_overrides: "{{ neutron_linuxbridge_agent_init_overrides }}"
+   start_order: 2
  neutron-metadata-agent:
    group: neutron_metadata_agent
    service_name: neutron-metadata-agent
@@ -359,6 +376,7 @@ neutron_services:
    config_overrides: "{{ neutron_metadata_agent_ini_overrides }}"
    config_type: "ini"
    init_config_overrides: "{{ neutron_metadata_agent_init_overrides }}"
+   start_order: 3
  neutron-metering-agent:
    group: neutron_metering_agent
    service_name: neutron-metering-agent
@@ -377,6 +395,7 @@ neutron_services:
    # TODO(hughsaunders): switch back to stevedore when
    # https://review.openstack.org/#/c/419881/ merges and is backported.
    interface_driver: neutron.agent.linux.interface.BridgeInterfaceDriver
+   start_order: 3
  neutron-l3-agent:
    group: neutron_l3_agent
    service_name: neutron-l3-agent
@@ -388,6 +407,7 @@ neutron_services:
    config_overrides: "{{ neutron_l3_agent_ini_overrides }}"
    config_type: "ini"
    init_config_overrides: "{{ neutron_l3_agent_init_overrides }}"
+   start_order: 3
  neutron-lbaasv2-agent:
    group: neutron_lbaas_agent
    service_name: neutron-lbaasv2-agent
@@ -399,6 +419,7 @@ neutron_services:
    config_overrides: "{{ neutron_lbaas_agent_ini_overrides }}"
    config_type: "ini"
    init_config_overrides: "{{ neutron_lbaas_agent_init_overrides }}"
+   start_order: 3
  neutron-bgp-dragent:
    group: neutron_bgp_dragent
    service_name: neutron-bgp-dragent
@@ -409,6 +430,7 @@ neutron_services:
    config_overrides: "{{ neutron_bgp_dragent_ini_overrides }}"
    config_type: "ini"
    init_config_overrides: "{{ neutron_bgp_dragent_init_overrides }}"
+   start_order: 3
  neutron-vpnaas-agent:
    group: neutron_l3_agent
    service_name: neutron-vpn-agent
@@ -420,16 +442,19 @@ neutron_services:
    config_overrides: "{{ neutron_vpnaas_agent_ini_overrides }}"
    config_type: "ini"
    init_config_overrides: "{{ neutron_vpn_agent_init_overrides }}"
+   start_order: 3
  neutron-server:
    group: neutron_server
    service_name: neutron-server
    service_en: True
    config_options: "--config-file {{ neutron_conf_dir }}/neutron.conf --config-file {{ neutron_conf_dir }}/{{ neutron_plugins[neutron_plugin_type].plugin_ini }} --log-file=/var/log/neutron/neutron-server.log {% if neutron_plugin_type == 'ml2.dragonflow' %}--config-file {{ neutron_conf_dir }}/dragonflow.ini{% endif %}"
    init_config_overrides: "{{ neutron_server_init_overrides }}"
+   start_order: 1
  calico-felix:
    group: neutron_calico_dhcp_agent
    system_user: root
    system_group: root
+   program_override: "{{ calico_felix_bin }}"
    service_name: calico-felix
    service_en: "{{ neutron_plugin_type == 'ml2.calico' }}"
    service_conf_path: /etc/calico
@@ -438,6 +463,7 @@ neutron_services:
    config_overrides: "{{ neutron_calico_felix_ini_overrides }}"
    config_type: "ini"
    init_config_overrides: "{{ neutron_calico_felix_init_overrides }}"
+   start_order: 3
  calico-dhcp-agent:
    group: neutron_calico_dhcp_agent
    system_user: root
@@ -449,6 +475,7 @@ neutron_services:
    config_overrides: "{{ neutron_calico_dhcp_agent_ini_overrides }}"
    config_type: "ini"
    init_config_overrides: "{{ neutron_calico_dhcp_agent_init_overrides }}"
+   start_order: 3
  neutron-sriov-nic-agent:
    group: neutron_sriov_nic_agent
    service_name: neutron-sriov-nic-agent
@@ -459,6 +486,7 @@ neutron_services:
    config_overrides: "{{ neutron_sriov_nic_agent_ini_overrides }}"
    config_type: "ini"
    init_config_overrides: "{{ neutron_sriov_nic_agent_init_overrides }}"
+   start_order: 3
  dragonflow-controller-agent:
    group: dragonflow_controller_agent
    system_user: root
@@ -469,6 +497,7 @@ neutron_services:
    config_overrides: "{{ neutron_dragonflow_ini_overrides }}"
    config_type: "ini"
    init_config_overrides: "{{ neutron_dragonflow_controller_agent_init_overrides }}"
+   start_order: 3
  dragonflow-l3-agent:
    group: dragonflow_l3_agent
    system_user: root
@@ -482,6 +511,7 @@ neutron_services:
    config_overrides: "{{ neutron_dragonflow_ini_overrides }}"
    config_type: "ini"
    init_config_overrides: "{{ neutron_dragonflow_l3_agent_init_overrides }}"
+   start_order: 3
  dragonflow-pubsub-agent:
    group: dragonflow_pubsub_agent
    service_name: df-publisher-service
@@ -490,6 +520,7 @@ neutron_services:
    config_overrides: "{{ neutron_dragonflow_ini_overrides }}"
    config_type: "ini"
    init_config_overrides: "{{ neutron_dragonflow_pubsub_agent_init_overrides }}"
+   start_order: 3
 
 ###
 ### Internals: Drivers mappings
