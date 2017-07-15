@@ -743,3 +743,6 @@ neutron_calico_dhcp_agent_ini_overrides: {}
 neutron_calico_felix_ini_overrides: {}
 neutron_sriov_nic_agent_ini_overrides: {}
 neutron_dragonflow_ini_overrides: {}
+
+# Install OpenvSwitch without NSH support
+ovs_nsh_support: false
