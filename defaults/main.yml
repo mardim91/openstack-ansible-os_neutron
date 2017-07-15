@@ -367,3 +367,6 @@ dragonflow_ex_peer_patch_port: patch-int
 dragonflow_int_peer_patch_port: patch-ex
 dragonflow_external_network_bridge: br-ex
 dragonflow_publisher_bind_address: "*"
+
+# Install OpenvSwitch without NSH support
+ovs_nsh_support: false
