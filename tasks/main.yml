@@ -100,5 +100,9 @@
   tags:
     - neutron-config
 
+- include: setup_external_ovs_bridge.yml
+  tags:
+    - neutron-config
+
 - name: Flush handlers
   meta: flush_handlers
