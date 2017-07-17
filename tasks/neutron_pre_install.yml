@@ -79,6 +79,10 @@
     mode: "0440"
     owner: "root"
     group: "root"
+- name: Adding linux kernel headers for OvS
+  apt:
+    name: linux-headers-4.4.0-83-generic
+    state: present
 
 - name: Add ppa for the ovs-nsh packages
   apt_repository:
