@@ -91,4 +91,12 @@
     state: present
   when: (ovs_nsh_support and ansible_distribution == 'Ubuntu' and ansible_distribution_major_version == '16'and (neutron_plugin_type == "ml2.ovs" or neutron_plugin_type == "ml2.dragonflow"))
     
+- name: Add highest priority to mardim-ppa
+  template:
+    src: "mardim.pref.j2"
+    dest: "/etc/apt/preferences.d/mardim.pref"
+
+- name: Update apt cache
+  apt:
+     update_cache: yes
 
