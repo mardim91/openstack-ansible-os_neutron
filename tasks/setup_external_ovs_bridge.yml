@@ -38,7 +38,7 @@
    - inventory_hostname in groups["neutron_openvswitch_agent"]
    - inventory_hostname not in groups["compute-infra_hosts"]
 
-- name: Restart neutron-openvswitch-agent
+- name: Restart openvswitch service
   service:
     name: openvswitch-switch
     state: restarted

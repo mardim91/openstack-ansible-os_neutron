@@ -20,6 +20,22 @@
     update_cache: "{{ (ansible_pkg_mgr == 'apt') | ternary('yes', omit) }}"
     cache_valid_time: "{{ (ansible_pkg_mgr == 'apt') | ternary(cache_timeout, omit) }}"
 
+- name: Ensure that the openvswitch module is loaded for OVS-NSH
+  modprobe:
+    name: openvswitch
+    state: present
+  when:
+   - inventory_hostname in groups["neutron_openvswitch_agent"]
+
+
+- name: Restart openvswitch service
+  service:
+    name: openvswitch-switch
+    state: restarted
+  when:
+   - inventory_hostname in groups["neutron_openvswitch_agent"]
+
+
 - name: Remove known problem packages
   package:
     name: "{{ item }}"
