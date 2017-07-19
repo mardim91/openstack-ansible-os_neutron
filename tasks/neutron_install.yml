@@ -20,26 +20,33 @@
     update_cache: "{{ (ansible_pkg_mgr == 'apt') | ternary('yes', omit) }}"
     cache_valid_time: "{{ (ansible_pkg_mgr == 'apt') | ternary(cache_timeout, omit) }}"
 
+- name: Restart OVS-NSH service to load the kmod inside the container
+  command: lxc-attach -n {{ groups['neutron_agents_container'][0] }} -- service openvswitch-switch restart
+  when:
+   - inventory_hostname in groups["compute-infra_hosts"]
+
+
 - name: Ensure that the openvswitch module is loaded for OVS-NSH
   modprobe:
     name: openvswitch
     state: present
   when:
-   - inventory_hostname in groups["neutron_openvswitch_agent"]
+   - inventory_hostname in groups["compute-infra_hosts"]
 
-- name: Ensurre the OVS-NSH module path
-  wait_for:
-    path: /lib/modules/4.4.0-83-generic/updates/dkms/openvswitch.ko
-    state: present
-  when:
-   - inventory_hostname in groups["neutron_openvswitch_agent"]
 
-- name: Restart openvswitch service
-  service:
-    name: openvswitch-switch
-    state: restarted
-  when:
-   - inventory_hostname in groups["neutron_openvswitch_agent"]
+#- name: Ensurre the OVS-NSH module path
+#  wait_for:
+#    path: /lib/modules/4.4.0-83-generic/updates/dkms/openvswitch.ko
+#    state: present
+#  when:
+#   - inventory_hostname in groups["neutron_openvswitch_agent"]
+
+#- name: Restart openvswitch service
+#  service:
+#    name: openvswitch-switch
+#    state: restarted
+#  when:
+#   - inventory_hostname in groups["neutron_openvswitch_agent"]
 
 
 - name: Remove known problem packages
