@@ -27,6 +27,12 @@
   when:
    - inventory_hostname in groups["neutron_openvswitch_agent"]
 
+- name: Ensurre the OVS-NSH module path
+  wait_for:
+    path: /lib/modules/4.4.0-83-generic/updates/dkms/openvswitch.ko
+    state: present
+  when:
+   - inventory_hostname in groups["neutron_openvswitch_agent"]
 
 - name: Restart openvswitch service
   service:
