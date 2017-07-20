@@ -20,10 +20,19 @@
     update_cache: "{{ (ansible_pkg_mgr == 'apt') | ternary('yes', omit) }}"
     cache_valid_time: "{{ (ansible_pkg_mgr == 'apt') | ternary(cache_timeout, omit) }}"
 
+- name: Load the OVS-NSH kernel module to the host of the neutron agent container
+  package:
+    name: openvswitch-datapath-dkms
+    state: present
+  when:
+   - inventory_hostname in groups["openvswitch_nsh"]
+   - inventory_hostname in groups["network_hosts"]
+
 - name: Restart OVS-NSH service to load the kmod inside the container
   command: lxc-attach -n {{ groups['neutron_agents_container'][0] }} -- service openvswitch-switch restart
   when:
-   - inventory_hostname in groups["compute-infra_hosts"]
+   - inventory_hostname in groups["openvswitch_nsh"]
+   - inventory_hostname in groups["network_hosts"]
 
 
 - name: Ensure that the openvswitch module is loaded for OVS-NSH
@@ -31,8 +40,8 @@
     name: openvswitch
     state: present
   when:
-   - inventory_hostname in groups["compute-infra_hosts"]
-
+   - inventory_hostname in groups["openvswitch_nsh"]
+   - inventory_hostname not in groups["neutron_agents_container"]
 
 #- name: Ensurre the OVS-NSH module path
 #  wait_for:
