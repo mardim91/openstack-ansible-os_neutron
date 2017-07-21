@@ -79,10 +79,13 @@
     mode: "0440"
     owner: "root"
     group: "root"
-- name: Adding linux kernel headers for OvS
+
+- name: Adding linux kernel headers for OvS-NSH
   apt:
-    name: linux-headers-4.4.0-83-generic
+    name: linux-headers-{{ ansible_kernel }}
     state: present
+  when:
+   - ovs_nsh_support
 
 - name: Add ppa for the ovs-nsh packages
   apt_repository:
@@ -95,6 +98,8 @@
   template:
     src: "mardim.pref.j2"
     dest: "/etc/apt/preferences.d/mardim.pref"
+  when: 
+   -ovs_nsh_support
 
 - name: Update apt cache
   apt:
