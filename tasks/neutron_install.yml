@@ -46,21 +46,6 @@
    - inventory_hostname in groups["openvswitch_nsh"]
    - inventory_hostname in groups["network_hosts"]
 
-#- name: Ensurre the OVS-NSH module path
-#  wait_for:
-#    path: /lib/modules/4.4.0-83-generic/updates/dkms/openvswitch.ko
-#    state: present
-#  when:
-#   - inventory_hostname in groups["neutron_openvswitch_agent"]
-
-#- name: Restart openvswitch service
-#  service:
-#    name: openvswitch-switch
-#    state: restarted
-#  when:
-#   - inventory_hostname in groups["neutron_openvswitch_agent"]
-
-
 - name: Remove known problem packages
   package:
     name: "{{ item }}"
