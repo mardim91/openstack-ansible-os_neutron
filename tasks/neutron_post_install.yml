@@ -125,6 +125,11 @@
   static: no
   when: neutron_plugin_type == 'nuage'
 
+- name: Setup networking-odl
+  include: opendaylight_config.yml
+  static: no
+  when: neutron_plugin_type == 'ml2.opendaylight'
+
 - name: Drop metadata iptables checksum fix
   copy:
     src: "post-up-metadata-checksum"
