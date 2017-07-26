@@ -90,9 +90,8 @@
 - name: Add ppa for the ovs-nsh packages
   apt_repository:
     repo: 'ppa:mardim/mardim-ppa'
-    codename: 'xenial'
     state: present
-  when: (ovs_nsh_support and ansible_distribution == 'Ubuntu' and ansible_distribution_major_version == '16'and (neutron_plugin_type == "ml2.ovs" or neutron_plugin_type == "ml2.dragonflow"))
+  when: (ovs_nsh_support and ansible_distribution == 'Ubuntu' and ansible_distribution_major_version == '16'and (neutron_plugin_type == "ml2.ovs" or neutron_plugin_type == "ml2.opendaylight" or neutron_plugin_type == "ml2.dragonflow"))
     
 - name: Add highest priority to mardim-ppa
   template:
