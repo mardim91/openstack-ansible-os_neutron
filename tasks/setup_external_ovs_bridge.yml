@@ -19,23 +19,23 @@
 #   - inventory_hostname not in groups["network_hosts"]
 
 
-- name: Add bridge for the external network
-  openvswitch_bridge:
-    bridge: br-ex
-    state: present
-  when:
-   - inventory_hostname in groups["neutron_agents_container"]
+#- name: Add bridge for the external network
+#  openvswitch_bridge:
+#    bridge: br-ex
+#    state: present
+#  when:
+#   - inventory_hostname in groups["neutron_agents_container"]
 #   - inventory_hostname not in groups["compute_hosts"]
 
-- name: Add port to br-ex
-  openvswitch_port:
-    bridge: br-ex
-    port: "eth12"
-    state: present
-  notify:
-    - Restart neutron services
-  when:
-   - inventory_hostname in groups["neutron_agents_container"]
+#- name: Add port to br-ex
+#  openvswitch_port:
+#    bridge: br-ex
+#    port: "eth12"
+#    state: present
+#  notify:
+#    - Restart neutron services
+#  when:
+#   - inventory_hostname in groups["neutron_agents_container"]
 #   - inventory_hostname not in groups["compute_hosts"]
 
 - name: Restart openvswitch service

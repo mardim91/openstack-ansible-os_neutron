@@ -104,6 +104,8 @@
 - include: neutron_opendaylight_setup.yml
   when:
     - neutron_plugin_type == "ml2.opendaylight"
+    - inventory_hostname not in groups["opendaylight"]
+    - inventory_hostname not in groups["network_hosts"]
   tags:
     - neutron-config
 
