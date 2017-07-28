@@ -36,7 +36,7 @@ vlan_transparent = False
 # Plugins
 core_plugin = {{ neutron_plugin_core }}
 {% if neutron_plugin_type.split('.')[0] == 'ml2' %}
-service_plugins = {{ neutron_plugin_loaded_base | join(',') }}
+service_plugins = odl-router_v2,{{ neutron_plugin_loaded_base | join(',') }}
 {% endif %}
 
 # MAC address generation for VIFs
