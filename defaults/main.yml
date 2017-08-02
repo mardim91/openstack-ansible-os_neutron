@@ -51,6 +51,9 @@ calico_felix_validate_certs: yes
 networking_odl_git_repo: https://git.openstack.org/openstack/networking-odl
 networking_odl_git_install_branch: stable/ocata
 
+networking_sfc_git_repo: https://git.openstack.org/openstack/networking-sfc
+networking_sfc_git_install_branch: stable/ocata
+
 neutron_developer_mode: false
 neutron_developer_constraints:
   - "git+{{ neutron_git_repo }}@{{ neutron_git_install_branch }}#egg=neutron"
@@ -138,6 +141,8 @@ neutron_plugin_core: "{{ neutron_plugins[neutron_plugin_type].plugin_core }}"
 neutron_plugin_base:
   - odl-router_v2 
   - metering
+  - networking_sfc.services.flowclassifier.plugin.FlowClassifierPlugin
+  - networking_sfc.services.sfc.plugin.SfcPlugin
 
 # Neutron Plugins
 # The neutron core plugin (ML2) is defined with neutron_plugin_type,
