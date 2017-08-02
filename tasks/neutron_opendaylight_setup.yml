@@ -33,7 +33,7 @@
   when: ovs_manager.stdout == ""
 
 - name: Configure hosts for networking-odl, force kernel datapath
-  command: "{{ neutron_bin }}/neutron-odl-ovs-hostconfig --noovs_dpdk"
+  command: "{{ neutron_bin }}/neutron-odl-ovs-hostconfig --noovs_dpdk --datapath_type=system --bridge_mappings={% for mapping in hostvars[inventory_hostname]['pndata']['network_mappings_list'] -%} {% if 'flat' in mapping %}{{ mapping }}{% endif %}{%- endfor %}"
   when: ovs_manager.stdout == ""
 
 - name: Retrieve current OvS local ip
@@ -45,3 +45,7 @@
 - name: Set local ip for OpenvSwitch
   command: "ovs-vsctl set Open_vSwitch . other_config:local_ip={{ neutron_local_ip }}"
   when: ovs_local_ip.rc != 0
+
+- name: Set the bridge mappings 
+  command: "ovs-vsctl set Open_vSwitch . other_config:provider_mappings={% for mapping in hostvars[inventory_hostname]['pndata']['network_mappings_list'] -%} {% if 'flat' in mapping %}{{ mapping }}{% endif %}{%- endfor %}"
+  when: hostvars[inventory_hostname]['pndata']['network_mappings'] != 0

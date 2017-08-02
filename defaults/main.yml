@@ -136,7 +136,7 @@ neutron_plugin_core: "{{ neutron_plugins[neutron_plugin_type].plugin_core }}"
 #   - qos
 #   - dns
 neutron_plugin_base:
-  - router
+  - odl-router_v2 
   - metering
 
 # Neutron Plugins
