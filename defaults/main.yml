@@ -139,10 +139,11 @@ neutron_plugin_core: "{{ neutron_plugins[neutron_plugin_type].plugin_core }}"
 #   - qos
 #   - dns
 neutron_plugin_base:
-  - odl-router_v2 
+#  - odl-router_v2 
+  - router
   - metering
-  - networking_sfc.services.flowclassifier.plugin.FlowClassifierPlugin
-  - networking_sfc.services.sfc.plugin.SfcPlugin
+#  - networking_sfc.services.flowclassifier.plugin.FlowClassifierPlugin
+#  - networking_sfc.services.sfc.plugin.SfcPlugin
 
 # Neutron Plugins
 # The neutron core plugin (ML2) is defined with neutron_plugin_type,
