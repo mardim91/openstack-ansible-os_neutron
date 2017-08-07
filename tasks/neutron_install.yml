@@ -38,13 +38,15 @@
    - inventory_hostname in groups["openvswitch_nsh"]
    - inventory_hostname not in groups["neutron_agents_container"]
 
-
 - name: Restart OVS-NSH service to load the kmod inside the container
-  command: lxc-attach -n {{ groups['neutron_agents_container'][0] }} -- service openvswitch-switch restart
+  command: lxc-attach -n "{{ item }}" -- service openvswitch-switch restart
+  ignore_errors: True
+  with_items: "{{ groups['neutron_agents_container'] }}"
   when:
    - ovs_nsh_support
    - inventory_hostname in groups["openvswitch_nsh"]
    - inventory_hostname in groups["network_hosts"]
+
 
 #- name: Ensurre the OVS-NSH module path
 #  wait_for:
