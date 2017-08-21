@@ -30,3 +30,41 @@
   tags:
     - opendaylight-install
     - opendaylight-pip-packages
+
+- name: Configure Genius to use flow based tunnels
+  template:
+    src: "netvirt-elanmanager-config.xml.j2"
+    dest: "/opt/opendaylight/etc/opendaylight/datastore/initial/config/netvirt-elanmanager-config.xml"
+    mode: "0440"
+    owner: "root"
+    group: "root"
+  when:
+    - "neutron_services['neutron-server']['group'] in group_names"
+    - "'networking_sfc.services.sfc.plugin.SfcPlugin' in neutron_plugin_base"
+
+- name: Configure Genius to create vxlan-gpe tunnels
+  template:
+    src: "genius-itm-config.xml.j2"
+    dest: "/opt/opendaylight/etc/opendaylight/datastore/initial/config/genius-itm-config.xml"
+    mode: "0440"
+    owner: "root"
+    group: "root"
+  when:
+    - "neutron_services['neutron-server']['group'] in group_names"
+    - "'networking_sfc.services.sfc.plugin.SfcPlugin' in neutron_plugin_base"
+
+- name: Reset ODL to read the new config files
+  service:
+    name: opendaylight.service
+    state: restarted
+  when:
+    - "neutron_services['neutron-server']['group'] in group_names"
+    - "'networking_sfc.services.sfc.plugin.SfcPlugin' in neutron_plugin_base"
+
+- name: Wait for ODL to be ready
+  wait_for:
+    port: 8181
+    delay: 15
+  when:
+    - "neutron_services['neutron-server']['group'] in group_names"
+    - "'networking_sfc.services.sfc.plugin.SfcPlugin' in neutron_plugin_base"
